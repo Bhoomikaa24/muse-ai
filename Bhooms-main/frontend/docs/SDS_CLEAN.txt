@@ -1,0 +1,1045 @@
+﻿SQL INTERVIEW HANDBOOK - PART B (WITH ANSWERS + SQL SNIPPETS)
+Comprehensive Coverage Edition
+Date: 2026-02-28
+
+====================================================================
+SECTION 1: SQL BASICS (1-20)
+====================================================================
+
+1) What is SQL?
+Answer: SQL (Structured Query Language) is used to define, query, and manipulate data in relational databases.
+Example:
+SELECT 'Hello SQL' AS message;
+
+2) What are the major SQL command categories?
+Answer: DDL, DML, DQL, DCL, TCL.
+Example:
+-- DDL
+CREATE TABLE departments (id INT PRIMARY KEY, name VARCHAR(100));
+-- DML
+INSERT INTO departments VALUES (1, 'Engineering');
+-- DQL
+SELECT * FROM departments;
+
+3) What is the difference between DBMS and RDBMS?
+Answer: RDBMS stores data in related tables with constraints and keys; DBMS is broader and may not enforce relational rules.
+
+4) What is a table?
+Answer: A table is a structured set of rows and columns representing an entity.
+Example:
+CREATE TABLE employees (
+	id INT PRIMARY KEY,
+	name VARCHAR(100),
+	dept_id INT
+);
+
+5) What is a schema?
+Answer: A schema is a logical namespace that groups database objects.
+Example:
+CREATE SCHEMA hr;
+
+6) What is the difference between SQL and MySQL?
+Answer: SQL is the language standard; MySQL is one database system implementing SQL.
+
+7) What is a row and a column?
+Answer: Row = record (tuple), Column = attribute/field.
+
+8) What is cardinality and degree?
+Answer: Cardinality = number of rows; degree = number of columns.
+
+9) What is a SQL dialect?
+Answer: Vendor-specific SQL behavior and syntax (PostgreSQL, SQL Server, Oracle, MySQL).
+
+10) What is data integrity?
+Answer: Accuracy and consistency of data maintained by constraints and transactions.
+
+11) What is a primary key?
+Answer: A unique, non-null identifier for each row.
+Example:
+CREATE TABLE users (
+	user_id INT PRIMARY KEY,
+	email VARCHAR(255)
+);
+
+12) What is a foreign key?
+Answer: A column that references a key in another table to enforce valid relationships.
+Example:
+ALTER TABLE employees
+ADD CONSTRAINT fk_emp_dept
+FOREIGN KEY (dept_id) REFERENCES departments(id);
+
+13) What is a unique key?
+Answer: Ensures uniqueness for column values (null handling differs by DB).
+Example:
+ALTER TABLE users ADD CONSTRAINT uq_users_email UNIQUE (email);
+
+14) What is a composite key?
+Answer: A key made from multiple columns.
+Example:
+CREATE TABLE order_items (
+	order_id INT,
+	product_id INT,
+	qty INT,
+	PRIMARY KEY (order_id, product_id)
+);
+
+15) What is a candidate key?
+Answer: Any minimal set of columns that can uniquely identify a row.
+
+16) What is a surrogate key?
+Answer: Artificial generated key (e.g., identity column).
+
+17) What is a natural key?
+Answer: A real-world business attribute used as a key (e.g., tax ID).
+
+18) What is a NOT NULL constraint?
+Answer: It prevents null values in a column.
+
+19) What is a CHECK constraint?
+Answer: Enforces a condition on inserted/updated values.
+Example:
+ALTER TABLE employees ADD CONSTRAINT chk_salary CHECK (salary >= 0);
+
+20) What is a DEFAULT constraint?
+Answer: Assigns a default value when value is omitted.
+Example:
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+====================================================================
+SECTION 2: DATA TYPES, NULLS, EXPRESSIONS (21-40)
+====================================================================
+
+21) Difference between CHAR and VARCHAR?
+Answer: CHAR is fixed length, VARCHAR is variable length.
+
+22) Why use DECIMAL for currency?
+Answer: DECIMAL is exact precision; FLOAT can introduce rounding errors.
+
+23) What are DATE and TIMESTAMP?
+Answer: DATE stores date only, TIMESTAMP stores date and time.
+
+24) What is NULL in SQL?
+Answer: NULL means unknown/missing value.
+
+25) Why is "= NULL" wrong?
+Answer: Use IS NULL / IS NOT NULL because NULL is not comparable with =.
+Example:
+SELECT * FROM users WHERE phone IS NULL;
+
+26) What does COALESCE do?
+Answer: Returns first non-null expression.
+Example:
+SELECT COALESCE(phone, 'N/A') AS phone_value FROM users;
+
+27) What does NULLIF do?
+Answer: Returns NULL when two expressions are equal.
+Example:
+SELECT NULLIF(0, 0); -- NULL
+
+28) What is CAST?
+Answer: Converts a value from one data type to another.
+Example:
+SELECT CAST('2026-02-28' AS DATE);
+
+29) What is SQL three-valued logic?
+Answer: Conditions evaluate to TRUE, FALSE, or UNKNOWN (with NULLs).
+
+30) How does COUNT(*) differ from COUNT(column)?
+Answer: COUNT(*) counts all rows; COUNT(column) ignores NULLs.
+Example:
+SELECT COUNT(*), COUNT(phone) FROM users;
+
+31) What is concatenation in SQL?
+Answer: Joining strings (syntax differs by DB).
+Example:
+SELECT first_name || ' ' || last_name AS full_name FROM employees;
+
+32) What is CASE in SQL?
+Answer: Conditional expression for custom output.
+Example:
+SELECT name,
+			 CASE WHEN salary >= 100000 THEN 'High' ELSE 'Standard' END AS band
+FROM employees;
+
+33) What are scalar functions?
+Answer: Functions returning one value per row (UPPER, LOWER, LENGTH, ROUND).
+
+34) What are aggregate functions?
+Answer: Functions over groups of rows (SUM, AVG, MIN, MAX, COUNT).
+
+35) What are deterministic functions?
+Answer: Same input always gives same output.
+
+36) What are non-deterministic functions?
+Answer: May return different output each call (CURRENT_TIMESTAMP, RANDOM).
+
+37) What is collation?
+Answer: Rules for text comparison and sorting.
+
+38) What is string trimming?
+Answer: Removing leading/trailing spaces via TRIM/LTRIM/RTRIM.
+
+39) What is date arithmetic?
+Answer: Adding/subtracting date intervals.
+Example:
+SELECT CURRENT_DATE + INTERVAL '7 day' AS next_week;
+
+40) What is aliasing?
+Answer: Temporary name for table/column in query.
+Example:
+SELECT e.name AS employee_name FROM employees e;
+
+====================================================================
+SECTION 3: SELECT, FILTERING, GROUPING (41-65)
+====================================================================
+
+41) Difference between WHERE and HAVING?
+Answer: WHERE filters rows before grouping; HAVING filters groups after aggregation.
+
+42) Why avoid SELECT * in production?
+Answer: Extra I/O, unstable contracts, slower performance.
+
+43) What does DISTINCT do?
+Answer: Removes duplicate result rows.
+Example:
+SELECT DISTINCT city FROM customers;
+
+44) What is ORDER BY?
+Answer: Sorts the result set.
+Example:
+SELECT * FROM employees ORDER BY salary DESC;
+
+45) What is LIMIT/OFFSET?
+Answer: Pagination controls (vendor-specific alternatives: TOP/FETCH).
+
+46) What is logical query processing order?
+Answer: FROM -> JOIN -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY -> LIMIT.
+
+47) Can HAVING be used without GROUP BY?
+Answer: Yes, on whole-result aggregate.
+Example:
+SELECT COUNT(*) FROM employees HAVING COUNT(*) > 0;
+
+48) What is GROUP BY?
+Answer: Groups rows so aggregate functions apply per group.
+
+49) Why must non-aggregated selected columns appear in GROUP BY?
+Answer: To avoid ambiguous row selection and enforce deterministic output.
+
+50) Difference between MIN/MAX and ORDER BY + LIMIT?
+Answer: MIN/MAX returns value directly; ORDER BY + LIMIT returns row(s).
+
+51) How to filter by pattern?
+Answer: Use LIKE and wildcards (% and _).
+Example:
+SELECT * FROM users WHERE email LIKE '%@gmail.com';
+
+52) What is BETWEEN?
+Answer: Inclusive range filter.
+Example:
+SELECT * FROM orders WHERE amount BETWEEN 100 AND 500;
+
+53) What is IN?
+Answer: Matches values from a list/subquery.
+Example:
+SELECT * FROM employees WHERE dept_id IN (1, 2, 3);
+
+54) What is EXISTS?
+Answer: Checks whether subquery returns at least one row.
+
+55) IN vs EXISTS?
+Answer: EXISTS often better for correlated existence checks on large datasets.
+
+56) What is a scalar subquery?
+Answer: Subquery returning a single value.
+
+57) What is a correlated subquery?
+Answer: Subquery referencing outer query columns and evaluated per outer row.
+
+58) What is a derived table?
+Answer: Subquery in FROM clause treated as temporary table.
+
+59) How to find duplicate records?
+Answer: GROUP BY target columns with HAVING COUNT(*) > 1.
+Example:
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+60) How to count distinct values?
+Answer: COUNT(DISTINCT column).
+
+61) What is conditional aggregation?
+Answer: Aggregate with CASE for segmented metrics.
+Example:
+SELECT
+	SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS paid_amount,
+	SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS pending_amount
+FROM invoices;
+
+62) What is top-N query?
+Answer: Return highest/lowest N rows by sort.
+Example:
+SELECT * FROM employees ORDER BY salary DESC LIMIT 5;
+
+63) What is keyset pagination?
+Answer: Pagination using last-seen key instead of OFFSET for better scale.
+Example:
+SELECT * FROM orders WHERE order_id > 5000 ORDER BY order_id LIMIT 50;
+
+64) What is OFFSET pagination downside?
+Answer: Slower for large offsets due to skipped row scanning.
+
+65) How to return rows with null-safe defaults?
+Answer: Use COALESCE in SELECT.
+
+====================================================================
+SECTION 4: JOINS & SET OPERATIONS (66-90)
+====================================================================
+
+66) What is INNER JOIN?
+Answer: Returns only matching rows in both tables.
+
+67) What is LEFT JOIN?
+Answer: Returns all left-table rows plus matching right rows; unmatched right side is NULL.
+
+68) What is RIGHT JOIN?
+Answer: Returns all right-table rows plus matching left rows.
+
+69) What is FULL OUTER JOIN?
+Answer: Returns all rows from both sides with NULLs where unmatched.
+
+70) What is CROSS JOIN?
+Answer: Cartesian product of two tables.
+
+71) What is SELF JOIN?
+Answer: Joining a table to itself.
+Example:
+SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.id;
+
+72) What is join selectivity?
+Answer: Degree to which join condition reduces rows.
+
+73) Common JOIN mistake?
+Answer: Missing join condition causing cartesian explosion.
+
+74) How to find unmatched rows from left table?
+Answer: LEFT JOIN + WHERE right_key IS NULL.
+
+75) UNION vs UNION ALL?
+Answer: UNION removes duplicates, UNION ALL keeps duplicates and is faster.
+
+76) What does INTERSECT do?
+Answer: Returns rows common to both queries.
+
+77) What does EXCEPT (or MINUS) do?
+Answer: Returns rows present in first query not in second.
+
+78) Requirements for set operators?
+Answer: Same number of columns, compatible data types, aligned order.
+
+79) Can ORDER BY be used in each UNION subquery?
+Answer: Generally ORDER BY applies to final combined result (dialect-specific exceptions).
+
+80) What is semi join conceptually?
+Answer: Return left rows that have at least one match (EXISTS-style).
+
+81) What is anti join conceptually?
+Answer: Return left rows with no match (NOT EXISTS-style).
+
+82) NOT IN vs NOT EXISTS with NULLs?
+Answer: NOT IN can behave unexpectedly with NULLs; NOT EXISTS is usually safer.
+
+83) Example for anti join?
+Example:
+SELECT c.*
+FROM customers c
+WHERE NOT EXISTS (
+	SELECT 1 FROM orders o WHERE o.customer_id = c.id
+);
+
+84) What is join elimination?
+Answer: Optimizer may remove unnecessary joins when result unaffected.
+
+85) What is star schema join pattern?
+Answer: Large fact table joined to multiple dimension tables.
+
+86) What is bridge table?
+Answer: Resolves many-to-many relationships.
+
+87) What is natural join?
+Answer: Auto-join by same column names; often avoided in production for clarity.
+
+88) Why qualify column names in joins?
+Answer: Prevent ambiguity and improve readability.
+
+89) How to debug duplicate rows after joins?
+Answer: Validate key uniqueness and join cardinality assumptions.
+
+90) How to keep one row per entity after joins?
+Answer: Use aggregation/window ranking and choose one deterministic row.
+
+====================================================================
+SECTION 5: CTEs, WINDOW FUNCTIONS, ADVANCED QUERYING (91-120)
+====================================================================
+
+91) What is a CTE?
+Answer: Named temporary result set defined with WITH.
+
+92) Why use CTE?
+Answer: Improves readability and modularity for complex queries.
+
+93) What is recursive CTE?
+Answer: CTE that repeatedly references itself for hierarchical traversal.
+
+94) Recursive CTE example?
+Example:
+WITH RECURSIVE org AS (
+	SELECT id, manager_id, name, 1 AS lvl
+	FROM employees
+	WHERE manager_id IS NULL
+	UNION ALL
+	SELECT e.id, e.manager_id, e.name, o.lvl + 1
+	FROM employees e
+	JOIN org o ON e.manager_id = o.id
+)
+SELECT * FROM org;
+
+95) What is a window function?
+Answer: Performs calculations across related rows while preserving individual rows.
+
+96) ROW_NUMBER vs RANK vs DENSE_RANK?
+Answer: ROW_NUMBER unique sequence; RANK skips numbers on ties; DENSE_RANK has no gaps.
+
+97) ROW_NUMBER example for top-3 per department?
+Example:
+WITH ranked AS (
+	SELECT e.*,
+				 ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rn
+	FROM employees e
+)
+SELECT * FROM ranked WHERE rn <= 3;
+
+98) What does PARTITION BY do?
+Answer: Splits result into partitions for window calculation.
+
+99) What does ORDER BY in OVER do?
+Answer: Defines sequence for ranking/running calculations.
+
+100) Running total example?
+Example:
+SELECT order_id, order_date, amount,
+			 SUM(amount) OVER (ORDER BY order_date ROWS UNBOUNDED PRECEDING) AS running_total
+FROM orders;
+
+101) Moving average example?
+Example:
+SELECT day, sales,
+			 AVG(sales) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_7_day
+FROM daily_sales;
+
+102) What is LAG?
+Answer: Accesses previous row value.
+
+103) What is LEAD?
+Answer: Accesses next row value.
+
+104) LAG example for day-over-day change?
+Example:
+SELECT day, sales,
+			 sales - LAG(sales) OVER (ORDER BY day) AS change_from_prev
+FROM daily_sales;
+
+105) What is FIRST_VALUE/LAST_VALUE?
+Answer: Returns first/last value in window frame.
+
+106) What are window frames?
+Answer: Row range definition like ROWS BETWEEN 3 PRECEDING AND CURRENT ROW.
+
+107) What is NTH_VALUE?
+Answer: Returns nth row value in frame (dialect support varies).
+
+108) What is percent rank?
+Answer: Relative ranking from 0 to 1.
+
+109) What is CUME_DIST?
+Answer: Cumulative distribution of a value within partition.
+
+110) What is NTILE?
+Answer: Splits rows into approximately equal buckets.
+
+111) What is pivoting?
+Answer: Converting row values into columns.
+
+112) Portable pivot via CASE example?
+Example:
+SELECT
+	dept_id,
+	SUM(CASE WHEN gender = 'F' THEN 1 ELSE 0 END) AS female_count,
+	SUM(CASE WHEN gender = 'M' THEN 1 ELSE 0 END) AS male_count
+FROM employees
+GROUP BY dept_id;
+
+113) What is unpivoting?
+Answer: Converting columns into row format.
+
+114) What is relational division?
+Answer: Finding entities matching all required related records.
+
+115) Example: customers who bought all products in set {1,2,3}?
+Example:
+SELECT customer_id
+FROM order_items
+WHERE product_id IN (1,2,3)
+GROUP BY customer_id
+HAVING COUNT(DISTINCT product_id) = 3;
+
+116) What is gaps and islands problem?
+Answer: Detecting breaks/continuous sequences in ordered data.
+
+117) What is JSON querying in SQL?
+Answer: Querying semi-structured JSON columns (syntax vendor-specific).
+
+118) What is lateral join / APPLY?
+Answer: Per-row subquery expansion from left table.
+
+119) What is generated column?
+Answer: Computed column derived from expression.
+
+120) What is materialized CTE behavior?
+Answer: Some DBs materialize; others inline depending on optimizer rules.
+
+====================================================================
+SECTION 6: NORMALIZATION, MODELING, DESIGN (121-145)
+====================================================================
+
+121) What is normalization?
+Answer: Structuring data to reduce redundancy and anomalies.
+
+122) What is 1NF?
+Answer: Atomic column values; no repeating groups.
+
+123) What is 2NF?
+Answer: 1NF + no partial dependency on part of composite key.
+
+124) What is 3NF?
+Answer: 2NF + no transitive dependency among non-key columns.
+
+125) What is BCNF?
+Answer: Stronger form of 3NF where every determinant is a candidate key.
+
+126) What is denormalization?
+Answer: Intentional redundancy to improve read performance.
+
+127) Trade-off of denormalization?
+Answer: Faster reads, but harder writes and consistency management.
+
+128) What is OLTP?
+Answer: Transaction-focused systems with many small reads/writes.
+
+129) What is OLAP?
+Answer: Analytical systems optimized for large aggregations/reporting.
+
+130) What is star schema?
+Answer: Fact table linked to dimension tables for analytics.
+
+131) What is snowflake schema?
+Answer: Normalized dimensions in analytical model.
+
+132) What is fact table?
+Answer: Stores measurable events (sales amount, quantity).
+
+133) What is dimension table?
+Answer: Stores descriptive attributes (product, customer, date).
+
+134) What is slowly changing dimension (SCD)?
+Answer: Strategy to handle dimension attribute changes over time.
+
+135) SCD Type 1?
+Answer: Overwrite old value; no history.
+
+136) SCD Type 2?
+Answer: Add new row versions with effective dates; preserves history.
+
+137) What is data warehouse surrogate key best practice?
+Answer: Use integer surrogate keys for dimensions.
+
+138) What is bridge table in dimensional model?
+Answer: Resolves many-to-many between fact and dimension.
+
+139) What is degenerate dimension?
+Answer: Dimension key stored directly in fact without dimension table (e.g., invoice number).
+
+140) What is junk dimension?
+Answer: Consolidates low-cardinality flags/attributes.
+
+141) What is grain of fact table?
+Answer: Level of detail represented by one fact row.
+
+142) Why define grain first?
+Answer: Prevents ambiguity and inconsistent aggregations.
+
+143) What is data mart?
+Answer: Subject-specific subset of warehouse data.
+
+144) What is conformed dimension?
+Answer: Shared dimension used consistently across marts.
+
+145) What is schema evolution?
+Answer: Safe, controlled changes to DB schema over time.
+
+====================================================================
+SECTION 7: TRANSACTIONS, CONCURRENCY, LOCKING (146-170)
+====================================================================
+
+146) What is a transaction?
+Answer: Atomic unit of multiple SQL operations.
+
+147) What is COMMIT?
+Answer: Permanently saves transaction changes.
+
+148) What is ROLLBACK?
+Answer: Reverts transaction changes not yet committed.
+
+149) What is SAVEPOINT?
+Answer: Marker for partial rollback within a transaction.
+Example:
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+SAVEPOINT s1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+ROLLBACK TO s1;
+COMMIT;
+
+150) What is ACID?
+Answer: Atomicity, Consistency, Isolation, Durability.
+
+151) Isolation levels?
+Answer: Read Uncommitted, Read Committed, Repeatable Read, Serializable (plus Snapshot in some DBs).
+
+152) Dirty read?
+Answer: Reading uncommitted data.
+
+153) Non-repeatable read?
+Answer: Same row read twice returns different values in one transaction.
+
+154) Phantom read?
+Answer: Re-running range query returns changed row set.
+
+155) What is optimistic concurrency?
+Answer: Assume low conflict, validate version at write time.
+
+156) What is pessimistic concurrency?
+Answer: Lock data early to prevent conflicts.
+
+157) What is deadlock?
+Answer: Circular wait on locks; DB aborts one transaction.
+
+158) How to reduce deadlocks?
+Answer: Consistent lock order, short transactions, proper indexing.
+
+159) What is lock escalation?
+Answer: DB converts many fine-grained locks to coarser lock.
+
+160) What is MVCC?
+Answer: Multi-Version Concurrency Control using row versions.
+
+161) What is snapshot isolation?
+Answer: Reads from consistent snapshot while writes proceed.
+
+162) What is write skew?
+Answer: Concurrent updates violating business rule under weaker isolation.
+
+163) What is autocommit?
+Answer: Each statement commits automatically unless explicit transaction.
+
+164) Why keep transactions short?
+Answer: Reduces lock time and contention.
+
+165) What is idempotent write pattern?
+Answer: Repeating operation produces same final state.
+
+166) What is upsert?
+Answer: Insert or update in one logical operation.
+
+167) PostgreSQL upsert example?
+Example:
+INSERT INTO users (id, name)
+VALUES (1, 'Alice')
+ON CONFLICT (id)
+DO UPDATE SET name = EXCLUDED.name;
+
+168) Why avoid long-running transactions in OLTP?
+Answer: They block resources and increase conflict/rollback cost.
+
+169) What is transaction log?
+Answer: Sequential record of changes for recovery/durability.
+
+170) What is point-in-time recovery dependency?
+Answer: Requires full backup plus log backups to target time.
+
+====================================================================
+SECTION 8: INDEXING, OPTIMIZATION, EXECUTION PLANS (171-200)
+====================================================================
+
+171) What is an index?
+Answer: Data structure to speed lookups and filtering.
+
+172) Clustered vs non-clustered index?
+Answer: Clustered controls physical row order; non-clustered is separate lookup structure.
+
+173) What is composite index?
+Answer: Index on multiple columns.
+
+174) What is leftmost prefix rule?
+Answer: Composite index is most effective when query filters from leading columns.
+
+175) What is covering index?
+Answer: Index contains all columns needed by query.
+
+176) Why too many indexes are harmful?
+Answer: Slower writes, higher storage and maintenance overhead.
+
+177) What is index selectivity?
+Answer: How unique values are; high selectivity often better for filtering.
+
+178) What is cardinality estimation?
+Answer: Optimizer prediction of row counts used for plan choices.
+
+179) What are table scans vs index seeks?
+Answer: Scan reads many/all rows; seek targets specific index ranges.
+
+180) What is sargable predicate?
+Answer: Predicate that can use index efficiently.
+
+181) Non-sargable example and fix?
+Answer: Avoid function wrapping indexed column.
+Bad:
+SELECT * FROM orders WHERE YEAR(order_date) = 2026;
+Better:
+SELECT * FROM orders
+WHERE order_date >= '2026-01-01' AND order_date < '2027-01-01';
+
+182) What is query execution plan?
+Answer: Optimizer-chosen operations to run query.
+
+183) How to inspect plan?
+Answer: Use EXPLAIN / EXPLAIN ANALYZE.
+
+184) Common plan red flags?
+Answer: Large full scans, expensive sorts/hashes, repeated key lookups.
+
+185) What is parameter sniffing?
+Answer: Cached plan optimized for one parameter can underperform for others.
+
+186) What are statistics?
+Answer: Metadata about data distribution used by optimizer.
+
+187) Why update statistics?
+Answer: Stale stats can cause poor plans and performance.
+
+188) What is partitioning?
+Answer: Splits large table/index into manageable pieces by key.
+
+189) What is partition pruning?
+Answer: Optimizer scans only relevant partitions.
+
+190) What is sharding?
+Answer: Horizontal split of data across multiple database servers.
+
+191) Difference between partitioning and sharding?
+Answer: Partitioning is typically inside one DB instance; sharding spans multiple instances.
+
+192) What is materialized view performance use case?
+Answer: Precompute expensive aggregations for faster reads.
+
+193) What is query hint?
+Answer: Directive influencing optimizer plan (use sparingly).
+
+194) What is batching writes?
+Answer: Process updates/deletes in chunks to limit lock/log pressure.
+
+195) Why avoid SELECT in loops from app code?
+Answer: Causes N+1 query anti-pattern; prefer set-based SQL.
+
+196) What is set-based processing?
+Answer: Operate on sets of rows in one statement rather than row-by-row loops.
+
+197) What is temp table use case?
+Answer: Stage intermediate data for complex transformations.
+
+198) CTE vs temp table?
+Answer: CTE is inline query structure; temp table persists intermediate result for reuse and indexing.
+
+199) What is plan cache?
+Answer: Stored compiled execution plans reused for similar queries.
+
+200) Basic SQL tuning checklist?
+Answer: Verify indexes, rewrite predicates sargably, reduce columns/rows early, inspect plans, update stats, benchmark changes.
+
+====================================================================
+SECTION 9: DDL, DML, VIEWS, PROCEDURES, TRIGGERS, SECURITY (201-230)
+====================================================================
+
+201) DELETE vs TRUNCATE vs DROP?
+Answer: DELETE removes selected rows; TRUNCATE clears all rows fast; DROP removes entire object.
+
+202) Can DELETE be rolled back?
+Answer: Yes, within an active transaction (DB/log mode dependent).
+
+203) Is TRUNCATE logged?
+Answer: Yes minimally in many DBs; behavior differs by engine.
+
+204) What does ALTER TABLE do?
+Answer: Modifies existing table schema.
+
+205) What is view?
+Answer: Virtual table from stored query.
+
+206) Why use views?
+Answer: Simplify complex SQL and restrict data exposure.
+
+207) Can views be updated?
+Answer: Some simple views are updatable; complex ones usually not.
+
+208) What is materialized view?
+Answer: Physically stored query result requiring refresh.
+
+209) What is stored procedure?
+Answer: Reusable database routine with SQL/procedural logic.
+
+210) Procedure vs function?
+Answer: Function returns value/table and is often side-effect restricted; procedure is operation-oriented.
+
+211) What is trigger?
+Answer: Auto-executed logic on table events.
+
+212) Why avoid heavy triggers?
+Answer: Hidden side effects and difficult debugging/performance impact.
+
+213) What is SQL injection?
+Answer: Malicious SQL execution via unsanitized input.
+
+214) How to prevent SQL injection?
+Answer: Parameterized queries, input validation, least privileges.
+
+215) What is GRANT?
+Answer: Gives permission on DB objects.
+
+216) What is REVOKE?
+Answer: Removes granted permissions.
+
+217) What is role-based access control?
+Answer: Assign permissions to roles, then assign roles to users.
+
+218) What is least privilege?
+Answer: Grant minimum required access only.
+
+219) What is row-level security?
+Answer: Restricts row visibility by user/policy.
+
+220) What is data masking?
+Answer: Obscuring sensitive data for non-privileged users.
+
+221) What is audit logging?
+Answer: Tracking who changed what and when.
+
+222) Example audit table columns?
+Answer: actor, action, table_name, record_id, old_value, new_value, changed_at.
+
+223) What is soft delete?
+Answer: Mark row as deleted (flag/timestamp) instead of removing physically.
+
+224) Soft delete advantage?
+Answer: Easier recovery/audit and historical analysis.
+
+225) Soft delete caution?
+Answer: Must consistently filter active rows.
+
+226) What is hard delete?
+Answer: Permanently remove row from table.
+
+227) What is schema migration?
+Answer: Versioned, repeatable DB structure changes.
+
+228) Safe migration strategy?
+Answer: Backward-compatible, phased rollout, fallback path.
+
+229) What is online index rebuild?
+Answer: Rebuild index with reduced downtime (vendor-specific).
+
+230) What is zero-downtime deployment for DB changes?
+Answer: Expand/contract pattern with compatible app+DB changes.
+
+====================================================================
+SECTION 10: TOP PRACTICAL INTERVIEW PROBLEMS (231-250)
+====================================================================
+
+231) Find second-highest salary.
+Example:
+SELECT salary
+FROM (
+	SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+	FROM employees
+) t
+WHERE rnk = 2;
+
+232) Find nth-highest salary (n parameterized).
+Example:
+-- Replace :n with desired rank
+SELECT salary
+FROM (
+	SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+	FROM employees
+) t
+WHERE rnk = :n;
+
+233) Remove duplicates keeping latest row.
+Example:
+WITH d AS (
+	SELECT id,
+				 ROW_NUMBER() OVER (PARTITION BY email ORDER BY updated_at DESC) AS rn
+	FROM users
+)
+DELETE FROM users
+WHERE id IN (SELECT id FROM d WHERE rn > 1);
+
+234) Find employees without department.
+Example:
+SELECT e.*
+FROM employees e
+LEFT JOIN departments d ON e.dept_id = d.id
+WHERE d.id IS NULL;
+
+235) Find department-wise highest salary employee.
+Example:
+WITH x AS (
+	SELECT e.*,
+				 ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rn
+	FROM employees e
+)
+SELECT * FROM x WHERE rn = 1;
+
+236) Monthly sales summary.
+Example:
+SELECT DATE_TRUNC('month', order_date) AS month_start,
+			 SUM(amount) AS total_sales
+FROM orders
+GROUP BY DATE_TRUNC('month', order_date)
+ORDER BY month_start;
+
+237) Running balance per account.
+Example:
+SELECT account_id, txn_time, amount,
+			 SUM(amount) OVER (
+				 PARTITION BY account_id
+				 ORDER BY txn_time
+				 ROWS UNBOUNDED PRECEDING
+			 ) AS running_balance
+FROM transactions;
+
+238) Find consecutive login streaks (gaps and islands idea).
+Answer: Use row_number with date difference grouping.
+
+239) Customers who bought all required products.
+Example:
+SELECT customer_id
+FROM order_items
+WHERE product_id IN (101,102,103)
+GROUP BY customer_id
+HAVING COUNT(DISTINCT product_id) = 3;
+
+240) Detect overlapping booking intervals.
+Example:
+SELECT b1.id, b2.id
+FROM bookings b1
+JOIN bookings b2
+	ON b1.resource_id = b2.resource_id
+ AND b1.id < b2.id
+ AND b1.start_time < b2.end_time
+ AND b2.start_time < b1.end_time;
+
+241) Upsert customer record safely.
+Example (PostgreSQL):
+INSERT INTO customers (id, name, email)
+VALUES (10, 'Riya', 'riya@example.com')
+ON CONFLICT (id)
+DO UPDATE SET name = EXCLUDED.name,
+							email = EXCLUDED.email;
+
+242) Return top 3 products by revenue per category.
+Example:
+WITH p AS (
+	SELECT category_id, product_id, SUM(amount) AS revenue,
+				 ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY SUM(amount) DESC) AS rn
+	FROM sales
+	GROUP BY category_id, product_id
+)
+SELECT * FROM p WHERE rn <= 3;
+
+243) Find duplicate transactions by multiple columns.
+Example:
+SELECT account_id, txn_date, amount, COUNT(*)
+FROM transactions
+GROUP BY account_id, txn_date, amount
+HAVING COUNT(*) > 1;
+
+244) Compute retention (users active in month M and M+1).
+Answer: Self-join user-month activity table on next month.
+
+245) Find median salary.
+Answer: Use percentile functions where available, else rank-based logic.
+Example (PostgreSQL):
+SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) AS median_salary
+FROM employees;
+
+246) Split comma-separated strings into rows.
+Answer: Use DB-specific split functions + lateral joins.
+
+247) Identify first purchase date per customer.
+Example:
+SELECT customer_id, MIN(order_date) AS first_purchase_date
+FROM orders
+GROUP BY customer_id;
+
+248) Find last order per customer with full row.
+Example:
+WITH r AS (
+	SELECT o.*,
+				 ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC, order_id DESC) AS rn
+	FROM orders o
+)
+SELECT * FROM r WHERE rn = 1;
+
+249) Detect price changes over time.
+Example:
+SELECT product_id, effective_date, price,
+			 LAG(price) OVER (PARTITION BY product_id ORDER BY effective_date) AS prev_price,
+			 price - LAG(price) OVER (PARTITION BY product_id ORDER BY effective_date) AS delta
+FROM product_prices;
+
+250) Explain your SQL optimization process in interview.
+Answer:
+1. Validate correctness first.
+2. Check row counts/selectivity.
+3. Inspect execution plan.
+4. Add/fix indexes.
+5. Rewrite non-sargable predicates.
+6. Reduce data scanned and columns selected.
+7. Re-test with realistic volume.
+
+====================================================================
+QUICK REVISION CHECKLIST
+====================================================================
+- Core SQL: SELECT, WHERE, GROUP BY, HAVING, JOIN types.
+- Data modeling: keys, constraints, normalization.
+- Advanced SQL: CTE, recursive CTE, window functions.
+- Transactions: ACID, isolation levels, locking/deadlocks.
+- Performance: indexing, execution plans, sargability, partitioning.
+- Security: SQL injection prevention, least privilege, auditing.
+- Practical patterns: deduplication, top-N per group, upsert, gaps/islands.
+
+END OF PART B

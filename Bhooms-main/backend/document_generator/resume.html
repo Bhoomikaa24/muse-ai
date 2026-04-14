@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Style Study</title>
+    <style>
+        :root {
+            --paper: #f4f4f2;
+            --ink: #111111;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: var(--paper);
+            font-family: "Arial Black", "Segoe UI", sans-serif;
+        }
+
+        .frame {
+            width: min(92vw, 420px);
+            aspect-ratio: 7 / 6;
+            position: relative;
+            background: var(--paper);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        .hero {
+            position: relative;
+            font-size: clamp(7rem, 22vw, 12rem);
+            line-height: 1;
+            font-weight: 900;
+            color: var(--ink);
+            letter-spacing: -0.07em;
+            user-select: none;
+        }
+
+        /* Horizontal slices to mimic scanline cut-through effect. */
+        .hero::after {
+            content: "5";
+            position: absolute;
+            inset: 0;
+            color: var(--paper);
+            -webkit-mask-image: repeating-linear-gradient(to bottom,
+                    transparent 0 2px,
+                    #000 2px 5px,
+                    transparent 5px 9px);
+            mask-image: repeating-linear-gradient(to bottom,
+                    transparent 0 2px,
+                    #000 2px 5px,
+                    transparent 5px 9px);
+            transform: translateX(-20px);
+        }
+
+        .marker {
+            position: absolute;
+            right: 24px;
+            bottom: 22px;
+            display: grid;
+            gap: 7px;
+            justify-items: end;
+            color: var(--ink);
+            font-family: "Times New Roman", serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .marker .line {
+            width: 10px;
+            height: 1px;
+            background: var(--ink);
+            opacity: 0.75;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="frame" aria-label="Stylized number display">
+        <div class="hero" aria-hidden="true">5</div>
+        <div class="marker" aria-hidden="true">
+            <span>5</span>
+            <span class="line"></span>
+            <span class="line" style="width: 7px"></span>
+        </div>
+    </main>
+</body>
+
+</html>
